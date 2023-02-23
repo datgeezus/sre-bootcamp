@@ -26,16 +26,18 @@ public class App {
     }
 
     public static Object urlLogin(spark.Request req, spark.Response res) throws Exception {
+        SQLConnection SQLConnection = com.wizeline.SQLConnection.getInstance();
         String username = req.queryParams("username");
         String password = req.queryParams("password");
-        Response r = new Response(Methods.generateToken(username, password));
+        Response r = new Response(Methods.generateToken(SQLConnection.getConnection(), username, password));
         res.type("application/json");
         return r;
     }
 
     public static Object protect(spark.Request req, spark.Response res) throws Exception {
+        SQLConnection SQLConnection = com.wizeline.SQLConnection.getInstance();
         String authorization = req.headers("Authorization");
-        Response r = new Response(Methods.accessData(authorization));
+        Response r = new Response(Methods.accessData(SQLConnection.getConnection(), authorization));
         res.type("application/json");
         return r;
     }

@@ -33,43 +33,43 @@ public class Methods {
     return Optional.empty();
   }
 
-  private static Connection getConnection() throws SQLException {
-    String dbName = System.getenv("DB_NAME");
-    String dbUsername = System.getenv("DB_USERNAME");
-    String dbPassword = System.getenv("DB_PASSWORD");
-    String hostName = System.getenv("DB_HOSTNAME");
-    String port = System.getenv("DB_PORT");
-    String url = String.format(
-            "jdbc:mysql://%s:%s/%s?user=%s&password=%s?characterEncoding=utf8",
-            hostName, port, dbName, dbUsername, dbPassword);
-    return DriverManager.getConnection(url);
-  }
+//  private static Connection getConnection() throws SQLException {
+//    String dbName = System.getenv("DB_NAME");
+//    String dbUsername = System.getenv("DB_USERNAME");
+//    String dbPassword = System.getenv("DB_PASSWORD");
+//    String hostName = System.getenv("DB_HOSTNAME");
+//    String port = System.getenv("DB_PORT");
+//    String url = String.format(
+//            "jdbc:mysql://%s:%s/%s?user=%s&password=%s?characterEncoding=utf8",
+//            hostName, port, dbName, dbUsername, dbPassword);
+//    return DriverManager.getConnection(url);
+//  }
 
-  public static String generateToken(String username, String password) {
+  public static String generateToken(Connection connection, String username, String password) {
     return Optional.ofNullable(System.getenv("SECRET"))
-            .map(secret -> generateToken(username, password, secret))
+            .map(secret -> generateToken(connection, username, password, secret))
             .orElse("");
   }
 
-  public static String generateToken(String username, String password, String secret) {
-//    try (Connection connection = getConnection()) {
-//      Optional<String> roleOpt = getRole(connection, username, password);
-      Optional<String> roleOpt = Optional.of("admin");
+  public static String generateToken(Connection connection, String username, String password, String secret) {
+    try (connection) {
+      Optional<String> roleOpt = getRole(connection, username, password);
+//      Optional<String> roleOpt = Optional.of("admin");
       return roleOpt.map(role -> createJWT(role, secret)).orElse("");
-//    } catch (SQLException e) {
-//      e.printStackTrace();
-//    }
-//
-//    return "";
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+
+    return "";
   }
 
-  public static String accessData(String authorization){
+  public static String accessData(Connection connection, String authorization){
     return Optional.ofNullable(System.getenv("SECRET"))
-            .map(secret -> accessData(authorization, secret))
+            .map(secret -> accessData(connection, authorization, secret))
             .orElse("");
   }
 
-  public static String accessData(String authorization, String secret){
+  public static String accessData(Connection connection, String authorization, String secret){
     try {
       var claims = decodeJWT(authorization, secret);
       System.out.print(claims);
